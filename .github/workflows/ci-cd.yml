@@ -1,8 +1,10 @@
+
 name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
@@ -14,38 +16,29 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm install -d
+        run: npm install
 
       - name: Install backend dependencies
         working-directory: backend
-        run: npm install -d
+        run: npm install
 
       - name: Build frontend
         working-directory: frontend
         run: npm run build
 
       - name: Build Docker image
-        run: docker build -t studentms-app:0.1 .
+        run: |
+          docker build -t studentms-app:0.1 .
+          docker tag studentms-app:0.1 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1
 
       - name: Log in to Docker Hub
-        run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
+        run: |
+          echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
 
       - name: Push Docker image to Docker Hub
-        run: docker push atong-app/studentms-app:0.1
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1
 
-      # - name: Set up Azure
-      #   uses: azure/actions/setup-azure@v1
-      #   with:
-      #     azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-
-      # - name: Deploy to Azure App Service
-      #   uses: azure/actions/deploy-to-azure@v1
-      #   with:
-      #     azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
-      #     app_name: your-app-name
-      #     resource_group: your-resource-group
-      #     slot_name: staging
