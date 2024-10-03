@@ -28,13 +28,13 @@ jobs:
         run: npm run build
 
       - name: Build Docker image
-        run: docker build -t studentms-app:latest .
+        run: docker build -t studentms-app:0.1 .
 
       - name: Log in to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: Push Docker image to Docker Hub
-        run: docker push atong-app/studentms-app:latest
+        run: docker push atong-app/studentms-app:0.1
 
       # - name: Set up Azure
       #   uses: azure/actions/setup-azure@v1
