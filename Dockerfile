@@ -6,14 +6,15 @@ WORKDIR /app
 
 # Copy package*.json files
 COPY package*.json ./
-COPY frontend/* /app  # Copy frontend files to /app directory
-COPY backend/* /app   # Copy backend files to /app directory
+
+# Copy frontend files
+COPY frontend/ frontend/
+
+# Copy backend files
+COPY backend/ backend/
 
 # Install dependencies
 RUN npm install
-
-# Copy application code
-COPY . .
 
 # Expose port 3000
 EXPOSE 3000
