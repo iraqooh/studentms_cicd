@@ -1,4 +1,3 @@
-
 name: CI/CD Pipeline
 
 on:
@@ -30,15 +29,12 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Build Docker image
+      - name: Build and push Docker image
         run: |
-          docker build -t studentms-app:0.1 .
-          docker tag studentms-app:0.1 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1
 
       - name: Log in to Docker Hub
         run: |
           echo ${{ secrets.DOCKER_HUB_PASSWORD }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-
-      - name: Push Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1
 
