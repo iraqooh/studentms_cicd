@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  build-and-push-docker-image:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -14,7 +14,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18  # Replace with your desired Node.js version
+          node-version: 18
 
       - name: Install dependencies
         run: npm install -d
@@ -28,10 +28,23 @@ jobs:
         run: npm run build
 
       - name: Build Docker image
-        run: docker build -t studentms-app:0.1 .
+        run: docker build -t studentms-app:latest .
 
       - name: Log in to Docker Hub
         run: docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: Push Docker image to Docker Hub
-        run: docker push atong-app/studentms-app:0.1
+        run: docker push atong-app/studentms-app:latest
+
+      # - name: Set up Azure
+      #   uses: azure/actions/setup-azure@v1
+      #   with:
+      #     azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # - name: Deploy to Azure App Service
+      #   uses: azure/actions/deploy-to-azure@v1
+      #   with:
+      #     azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+      #     app_name: your-app-name
+      #     resource_group: your-resource-group
+      #     slot_name: staging
