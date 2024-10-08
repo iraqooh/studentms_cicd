@@ -2,7 +2,7 @@
 import { shallowMount } from '@vue/test-utils';
 import ListStudent from './ListStudent.vue';
 import SearchComponent from './SearchComponent.vue';
-import ApiService from '../services/ApiService';
+import ApiService from '@/services/ApiService';
 
 jest.mock('../services/ApiService');
 
