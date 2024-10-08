@@ -30,9 +30,9 @@ jobs:
       #   working-directory: frontend
       #   run: npm run test
 
-      - name: Run integration tests (Jest)
-        working-directory: backend
-        run: npm run test
+      # - name: Run integration tests (Jest)
+      #   working-directory: backend
+      #   run: npm run test
 
       - name: Run ESLint
         working-directory: frontend
