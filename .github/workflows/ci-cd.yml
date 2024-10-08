@@ -97,5 +97,16 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Deploy to production
         run: |
- # Add production deployment script here
+          # Deploy script
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod
+          # Rollback script
+          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod-rollback
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod-rollback
+
+
+#Monitoring and Logging Configuration:
+# Prometheus configuration
+
+
 
