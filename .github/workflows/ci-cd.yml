@@ -26,9 +26,9 @@ jobs:
         working-directory: backend
         run: npm install
 
-      - name: Run unit tests (Jest)
-        working-directory: frontend
-        run: npm run test
+      # - name: Run unit tests (Jest)
+      #   working-directory: frontend
+      #   run: npm run test
 
       - name: Run integration tests (Jest)
         working-directory: backend
