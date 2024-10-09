@@ -136,11 +136,8 @@ jobs:
 
       # Setup Docker permissions on EC2 instance
       - name: Setup Docker Permissions
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_KEY: ${{ secrets.EC2_KEY }}
         run: |
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST "sudo usermod -aG docker $EC2_USER"
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ubuntu@${{ secrets.EC2_HOST }} "sudo usermod -aG docker ubuntu"
 
       # Deploy backend to EC2 instance
       - name: Deploy backend to EC2
