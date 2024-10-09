@@ -118,6 +118,11 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      - name: Set up SSH Key
+        run: |
+          echo "${{ secrets.EC2_KEY }}" > ec2-key.pem
+          chmod 600 ec2-key.pem
+
       # Deploy backend to EC2 instance
       - name: Deploy backend to EC2
         env:
