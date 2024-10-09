@@ -1,5 +1,5 @@
 const db_config = {
-    host: process.env.DB_HOST || 'mysql',
+    host: process.env.DB_HOST || 'mysql-container',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'cyber_school',

@@ -128,11 +128,46 @@ jobs:
           EC2_USER: ubuntu
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_KEY: ${{ secrets.EC2_KEY }}
+          DB_USER: root
+          DB_PASSWORD: my-secret-pw
+          DB_NAME: cyber_school
+          DB_DIALECT: mysql
+          DB_PORT: 3306
         run: |
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST "docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 && \
-          sudo docker stop studentms-app || true && \
-          sudo docker rm studentms-app || true && \
-          sudo docker run -d --name studentms-app -p 3000:3000 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1"
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST "\
+            # Pull the backend and MySQL images
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 && \
+            docker pull mysql:latest && \
+
+            # Create a Docker network if it doesn't exist
+            sudo docker network create studentms-network || true && \
+
+            # Stop and remove the existing backend container if running
+            sudo docker stop studentms-app || true && \
+            sudo docker rm studentms-app || true && \
+
+            # Stop and remove the existing MySQL container if running
+            sudo docker stop mysql-container || true && \
+            sudo docker rm mysql-container || true && \
+
+            # Run MySQL container with environment variables
+            sudo docker run -d --name mysql-container \
+              --network studentms-network \
+              -e MYSQL_ROOT_PASSWORD=${DB_PASSWORD} \
+              -e MYSQL_DATABASE=${DB_NAME} \
+              mysql:latest && \
+
+            # Run backend container and connect it to the same network
+            sudo docker run -d --name studentms-app \
+              --network studentms-network \
+              -e DB_HOST=mysql-container \
+              -e DB_USER=${DB_USER} \
+              -e DB_PASSWORD=${DB_PASSWORD} \
+              -e DB_NAME=${DB_NAME} \
+              -e DB_DIALECT=${DB_DIALECT} \
+              -e DB_PORT=${DB_PORT} \
+              -p 3000:3000 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 \
+          "
 
   deploy-frontend:
     needs: build
