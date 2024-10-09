@@ -28,7 +28,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '20' # Ensure consistency across jobs
+        node-version: '20'
 
     - name: Install backend dependencies
       run: |
@@ -130,7 +130,7 @@ jobs:
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_KEY: ${{ secrets.EC2_KEY }}
         run: |
-          ssh -i $EC2_KEY $EC2_USER@$EC2_HOST "docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod && \
+          ssh -i ec2-key.pem $EC2_USER@$EC2_HOST "docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod && \
           docker stop studentms-app || true && \
           docker rm studentms-app || true && \
           docker run -d --name studentms-app -p 3000:3000 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod"
