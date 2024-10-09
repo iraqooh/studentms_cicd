@@ -124,15 +124,15 @@ jobs:
           chmod 400 ec2-key.pem
 
       # Deploy frontend to Netlify
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
+      # - name: Install Netlify CLI
+      #   run: npm install -g netlify-cli
 
-      - name: Deploy frontend to Netlify
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        working-directory: frontend
-        run: netlify deploy --prod --dir=dist
+      # - name: Deploy frontend to Netlify
+      #   env:
+      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      #   working-directory: frontend
+      #   run: netlify deploy --prod --dir=dist
 
       # Deploy backend to EC2 instance
       - name: Deploy backend to EC2
@@ -148,12 +148,12 @@ jobs:
           docker run -d --name studentms-app -p 3000:3000 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod"
 
       # Deploy frontend to Netlify
-      # - name: Install Netlify CLI
-      #   run: npm install -g netlify-cli
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
 
-      # - name: Deploy frontend to Netlify
-      #   working-directory: frontend
-      #   env:
-      #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-      #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-      #   run: netlify deploy --prod --dir=dist
+      - name: Deploy frontend to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        working-directory: frontend
+        run: netlify deploy --prod --dir=dist
