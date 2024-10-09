@@ -134,6 +134,14 @@ jobs:
       #   working-directory: frontend
       #   run: netlify deploy --prod --dir=dist
 
+      # Setup Docker permissions on EC2 instance
+      - name: Setup Docker Permissions
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_KEY: ${{ secrets.EC2_KEY }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST "sudo usermod -aG docker $EC2_USER"
+
       # Deploy backend to EC2 instance
       - name: Deploy backend to EC2
         env:
@@ -142,10 +150,10 @@ jobs:
           EC2_KEY: ${{ secrets.EC2_KEY }}
         run: |
           head -1 ec2-key.pem
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST "docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod && \
+          ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST "docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 && \
           sudo docker stop studentms-app || true && \
           sudo docker rm studentms-app || true && \
-          sudo docker run -d --name studentms-app -p 3000:3000 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:prod"
+          sudo docker run -d --name studentms-app -p 3000:3000 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1"
 
       # Deploy frontend to Netlify
       - name: Install Netlify CLI
