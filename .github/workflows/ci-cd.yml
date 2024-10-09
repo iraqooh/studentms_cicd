@@ -32,13 +32,18 @@ jobs:
     - name: Wait for MySQL to be ready
       run: sleep 15
 
-    - name: Run tests
+    - name: Run backend tests
       env:
         DB_HOST: 127.0.0.1
         DB_PORT: 3306
         DB_USER: test_user
         DB_PASSWORD: test_password
         DB_NAME: test_db
+      working-directory: backend
+      run: npm test
+
+    - name: Run frontend tests
+      working-directory: frontend
       run: npm test
 
   build:
