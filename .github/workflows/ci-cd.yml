@@ -191,6 +191,7 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         working-directory: frontend
         run: |
+          npm run build
           echo "Displaying files and directories in the current working directory"
           ls -lah
           netlify deploy --prod --dir=dist
