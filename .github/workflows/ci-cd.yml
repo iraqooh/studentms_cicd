@@ -77,17 +77,15 @@ jobs:
         working-directory: frontend
         run: npm install
 
-      # - name: Install backend dependencies
-      #   working-directory: backend
-      #   run: npm install
-
       - name: Build frontend
         working-directory: frontend
-        run: |
-          npm run build
-          echo "Build success test"
-          ls -lah
-          test -f dist/index.html
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
 
   deploy-backend:
     needs: build
@@ -111,7 +109,7 @@ jobs:
 
       - name: Set up SSH Key
         run: |
-          echo "${{ secrets.EC2_KEY_2 }}" > ec2-key.pem
+          echo "${{ secrets.EC2_KEY }}" > ec2-key.pem
           chmod 400 ec2-key.pem
 
       # Setup Docker permissions on EC2 instance
@@ -185,13 +183,15 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
       - name: Deploy frontend to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         working-directory: frontend
-        run: |
-          npm run build
-          echo "Displaying files and directories in the current working directory"
-          ls -lah
-          netlify deploy --prod --dir=dist
+        run: netlify deploy --prod --dir=dist
