@@ -61,34 +61,28 @@ jobs:
       working-directory: frontend
       run: npm test
 
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+  # build:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: '20'
 
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm install
+  #     - name: Install frontend dependencies
+  #       working-directory: frontend
+  #       run: npm install
 
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-
-      - name: Save workspace
-        uses: actions/upload-artifact@v3
-        with:
-          name: workspace
-          path: .
+  #     - name: Build frontend
+  #       working-directory: frontend
+  #       run: npm run build
 
   deploy-backend:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -174,7 +168,7 @@ jobs:
           "
 
   deploy-frontend:
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -182,10 +176,23 @@ jobs:
         with:
           ref: main
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
 
-      - name: Restore workspace
+      - name: Build frontend
         uses: actions/download-artifact@v3
         with:
           name: workspace
