@@ -135,6 +135,8 @@ jobs:
               -e MYSQL_DATABASE=${DB_NAME} \
               mysql:latest && \
 
+            sleep 15 && \ # wait for MySQL container to start
+
             # Run backend container and connect it to the same network
             sudo docker run -d --name studentms-app \
               --network studentms-network \
