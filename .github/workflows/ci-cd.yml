@@ -111,7 +111,7 @@ jobs:
 
       - name: Set up SSH Key
         run: |
-          echo "${{ secrets.EC2_KEY }}" > ec2-key.pem
+          echo "${{ secrets.EC2_KEY_2 }}" > ec2-key.pem
           chmod 400 ec2-key.pem
 
       # Setup Docker permissions on EC2 instance
