@@ -85,6 +85,8 @@ jobs:
         working-directory: frontend
         run: |
           npm run build
+          echo "Build success test"
+          ls -lah
           test -f dist/index.html
 
   deploy-backend:
