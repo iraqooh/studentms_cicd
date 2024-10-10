@@ -100,7 +100,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 . # Ensure Dockerfile is at the root
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1
           docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:staging
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:staging
