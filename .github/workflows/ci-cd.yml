@@ -41,6 +41,11 @@ jobs:
     - name: Install backend dependencies
       run: npm ci --prefix backend
 
+    - name: Create Docker network if not exists
+      run: |
+        docker network inspect studentms-network >/dev/null 2>&1 || \
+        docker network create studentms-network
+
     - name: Start MySQL container
       run: |
         docker run -d --name mysql-container --network studentms-network \
