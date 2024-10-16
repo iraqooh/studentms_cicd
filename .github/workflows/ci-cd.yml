@@ -1,12 +1,12 @@
-name: CI/CD Pipeline
+name: Optimized CI/CD Pipeline
 
 on:
   push:
     branches:
-      - main
+      - prod_env
 
 jobs:
-  test:
+  test-backend:
     runs-on: ubuntu-latest
 
     services:
@@ -30,21 +30,22 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Install backend dependencies
-      run: |
-        cd backend
-        npm install
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
-    - name: Install frontend dependencies
-      run: |
-        cd frontend
-        npm install
+    - name: Install backend dependencies
+      run: npm ci --prefix backend
 
     - name: Wait for MySQL to be ready
       run: |
-        until mysqladmin ping -h"127.0.0.1" -u"test_user" -p"test_password" --silent; do
-          echo "Waiting for MySQL..."
-          sleep 5
+        while ! docker exec mysql-container mysqladmin ping -h"127.0.0.1" --silent; do
+          echo "Waiting for MySQL to be ready..."
+          sleep 2
         done
 
     - name: Run backend tests
@@ -57,13 +58,37 @@ jobs:
       working-directory: backend
       run: npm test
 
+  test-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install frontend dependencies
+      run: npm ci --prefix frontend
+
     - name: Run frontend tests
       working-directory: frontend
       run: npm test
 
   deploy-backend:
-    needs: test
+    needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -74,51 +99,46 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.docker-cache
+          key: ${{ runner.os }}-docker-${{ hashFiles('Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
       - name: Build and push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 .
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 . --cache-from /tmp/.docker-cache
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1
 
-      - name: Set up SSH Key
-        run: |
-          echo "${{ secrets.EC2_KEY }}" > ec2-key.pem
-          chmod 400 ec2-key.pem
+      - name: Set up SSH Key with SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_KEY }}
 
-      - name: Deploy backend with PM2 to EC2
+      - name: Deploy backend to EC2
         env:
           EC2_USER: ubuntu
           EC2_HOST: ${{ secrets.EC2_HOST }}
-          EC2_KEY: ${{ secrets.EC2_KEY }}
           DB_USER: root
           DB_PASSWORD: my-secret-pw
           DB_NAME: cyber_school
           DB_DIALECT: mysql
           DB_PORT: 3306
         run: |
-          chmod 400 ec2-key.pem
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem $EC2_USER@$EC2_HOST "\
-            # Pull the Docker images
+          ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "\
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 && \
             docker pull mysql:latest && \
-
-            # Create a Docker network
-            sudo docker network create studentms-network || true && \
-
-            # Stop and remove existing containers
-            sudo docker stop studentms-app || true && sudo docker rm studentms-app || true && \
-            sudo docker stop mysql-container || true && sudo docker rm mysql-container || true && \
-
-            # Run MySQL container
-            sudo docker run -d --name mysql-container --network studentms-network \
+            docker network ls | grep studentms-network || docker network create studentms-network && \
+            docker stop studentms-app && docker rm studentms-app || true && \
+            docker stop mysql-container && docker rm mysql-container || true && \
+            docker run -d --name mysql-container --network studentms-network \
               -e MYSQL_ROOT_PASSWORD=${DB_PASSWORD} \
               -e MYSQL_DATABASE=${DB_NAME} \
               mysql:latest && \
-
-            # Wait for MySQL to start
-            sleep 15 && \
-
-            # Run backend container with PM2
-            sudo docker run -d --name studentms-app --network studentms-network \
+            while ! docker exec mysql-container mysqladmin ping --silent; do sleep 2; done && \
+            docker run -d --name studentms-app --network studentms-network \
               -e DB_HOST=mysql-container \
               -e DB_USER=${DB_USER} \
               -e DB_PASSWORD=${DB_PASSWORD} \
@@ -128,15 +148,15 @@ jobs:
               -p 3000:3000 ${{ secrets.DOCKER_HUB_USERNAME }}/studentms-app:0.1 \
           "
 
-
   build-and-deploy-frontend:
-    needs: test
+    needs: [test-backend, test-frontend]
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          ref: main
+          ref: prod_env
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -144,12 +164,19 @@ jobs:
           node-version: '20'
 
       - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm install
+        run: npm ci --prefix frontend
 
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+
+      - name: Cache Netlify build
+        uses: actions/cache@v3
+        with:
+          path: 'frontend/.cache'
+          key: ${{ runner.os }}-netlify-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-netlify-
 
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
