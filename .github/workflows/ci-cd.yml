@@ -49,11 +49,13 @@ jobs:
     - name: Start MySQL container
       run: |
         docker run -d --name mysql-container --network studentms-network \
-          -e MYSQL_ROOT_PASSWORD=root_password \
-          -e MYSQL_DATABASE=test_db \
-          -e MYSQL_USER=test_user \
-          -e MYSQL_PASSWORD=test_password \
-          mysql:latest
+        -e MYSQL_ROOT_PASSWORD=root_password \
+        -e MYSQL_DATABASE=test_db \
+        -e MYSQL_USER=test_user \
+        -e MYSQL_PASSWORD=test_password \
+        --health-cmd="mysqladmin ping --silent" \
+        --health-interval=10s --health-timeout=5s --health-retries=5 \
+        mysql:latest
 
     - name: Wait for MySQL to be ready
       run: |
