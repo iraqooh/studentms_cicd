@@ -3,7 +3,7 @@ name: Optimized CI/CD Pipeline
 on:
   push:
     branches:
-      - prod_env
+      - main
 
 jobs:
   test-backend:
@@ -156,7 +156,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
-          ref: prod_env
+          ref: main
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
