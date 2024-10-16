@@ -41,11 +41,20 @@ jobs:
     - name: Install backend dependencies
       run: npm ci --prefix backend
 
+    - name: Start MySQL container
+      run: |
+        docker run -d --name mysql-container --network studentms-network \
+          -e MYSQL_ROOT_PASSWORD=root_password \
+          -e MYSQL_DATABASE=test_db \
+          -e MYSQL_USER=test_user \
+          -e MYSQL_PASSWORD=test_password \
+          mysql:latest
+
     - name: Wait for MySQL to be ready
       run: |
-        while ! docker exec mysql-container mysqladmin ping -h"127.0.0.1" --silent; do
+        until [ "$(docker inspect -f {{.State.Health.Status}} mysql-container)" = "healthy" ]; do
           echo "Waiting for MySQL to be ready..."
-          sleep 2
+          sleep 5
         done
 
     - name: Run backend tests
